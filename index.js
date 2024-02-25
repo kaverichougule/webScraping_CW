@@ -1,63 +1,47 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
-const fs = require('fs');
-const XLSX = require('xlsx');
-
-const url = 'https://www.amazon.com/';
-
-axios.get(url)
-    .then(response => {
-        const html = response.data;
-        const $ = cheerio.load(html);
-
-        // Lists to store scraped data
-        const productNames = [];
-        const prices = [];
-        const availability = [];
-        const productRatings = [];
-
-        // Extract data from the HTML
-        // You need to inspect the website's HTML structure to find the appropriate selectors
-
-        // Example:
-        // Extracting product names
-        $('.product-name-class').each((index, element) => {
-            productNames.push($(element).text().trim());
+console.log("Web Scraping");
+const axios=require("axios");
+const cheerio=require("cheerio")
+const xlsx=require("xlsx");
+let products=[];
+const getData=async ()=>{
+    try{
+        const response=await axios.get("https://www.quikr.com/jobs/frontend-developer+zwqxj1519612219",
+        {
+            headers:{
+                'Content-Type':"text/html"
+            }
         });
+        // console.log(response.data);
+        const $=cheerio.load(response.data)
+        // const body=$("body");
+        const openingsCard=$("[id]")
+        .find("a.job-title")
+        .each((index,data)=>{
+            products.push({name: $(data).text()});
+            // console.log($(data).text());
+        })
+        // console.log(body);
+        console.log(products);
 
-        // Extracting prices
-        $('.price-class').each((index, element) => {
-            prices.push($(element).text().trim());
-        });
+        /**
+         * 1.Create a workbook (Excel file)
+         * 2.Insert the data into sheet
+         * 3.Create a sheet(Excel sheet)
+         * 4.Attach the sheet to the file
+         * 5.Write the file to filesystem 
+         */
+        const workbook = xlsx.utils.book_new();
+        const sheetData=[
+            ["Job Title"],
+            
+        ];
 
-        // Extracting availability
-        $('.availability-class').each((index, element) => {
-            availability.push($(element).text().trim());
-        });
-
-        // Extracting product ratings
-        $('.rating-class').each((index, element) => {
-            productRatings.push($(element).text().trim());
-        });
-
-        // Create an array of objects to store the data
-        const data = productNames.map((name, index) => ({
-            'Product Name': name,
-            'Price': prices[index],
-            'Availability': availability[index],
-            'Product Rating': productRatings[index],
-        }));
-
-        // Create a worksheet and add the data
-        const ws = XLSX.utils.json_to_sheet(data);
-
-        // Create a workbook with the worksheet
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Product Information');
-
-        // Save the workbook to an Excel file
-        XLSX.writeFile(wb, 'product_information.xlsx');
-    })
-    .catch(error => {
-        console.error(`Failed to retrieve the webpage: ${error.message}`);
-    });
+        const workSheet=xlsx.utils.json_to_sheet(sheetData)
+        xlsx.utils.book_append_sheet(workbook,workSheet, "Openings");
+        xlsx.writeFile(workbook,'output.xlsx')
+    }
+    catch(err){
+        console.error(err)
+    }
+}
+getData();
