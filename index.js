@@ -36,7 +36,7 @@ const getData=async ()=>{
             
         ];
 
-        const workSheet=xlsx.utils.json_to_sheet(sheetData)
+        const workSheet=xlsx.utils.json_to_sheet(products)
         xlsx.utils.book_append_sheet(workbook,workSheet, "Openings");
         xlsx.writeFile(workbook,'output.xlsx')
     }
